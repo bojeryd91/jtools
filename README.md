@@ -96,6 +96,7 @@ To reproduce: set the path to your Stata executable at the top of
 
 - [ ] Option to use built-in `reshape` even when `greshape` is installed, for
       features `greshape` does not support
+- [ ] Compare performance when running Stata/MP
 - [ ] Keep `reshape`'s dataset characteristics, so that `reshape long`/`reshape
       wide` with no arguments reverses a `jreshape`
 - [ ] Restore the original sort order (not only the data) after an error
