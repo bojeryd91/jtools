@@ -2,6 +2,13 @@
 
 Stata tools for manipulating large datasets with limited memory.
 
+Commands such as `reshape` can need several times the dataset's size in
+working memory. When that exceeds the RAM available, Stata stops with an
+out-of-memory error or slows to a crawl as the operating system swaps memory
+to disk, which can make Stata freeze. The commands in this repository process
+the data in pieces, so the extra memory needed stays bounded and large jobs
+finish instead of freezing Stata.
+
 ## jreshape
 
 `jreshape` is a drop-in replacement for `reshape` that processes the data in
@@ -45,6 +52,14 @@ jreshape wide var, i(id) j(year) batchsize(1000000)
 - The output is sorted by `i()` (and `j()` for `long`).
 - If an error occurs, the original data are restored, sorted by `i()`.
 - Requires Stata 17 or later.
+- When `greshape` is installed, `jreshape` uses it for every batch and inherits
+  its limitations. In particular, `greshape` does not implement `reshape`'s
+  extended syntax (typing `reshape long` or `reshape wide` with no arguments to
+  reverse a previous reshape) or the subcommands `error`, `query`, `i`, `j`,
+  `xij`, `xi` and `clear`. See the
+  [greshape documentation](https://gtools.readthedocs.io/en/latest/usage/greshape/index.html).
+  There is currently no option to force built-in `reshape` when `greshape` is
+  installed (see the to-do list below).
 
 ### Installation
 
@@ -76,3 +91,15 @@ relative difference in run time (−0.50 = half the time of `reshape`).
 
 To reproduce: set the path to your Stata executable at the top of
 `run-benchmarks.do` and run it from the repository folder. Requires gtools.
+
+## To do
+
+- [ ] Option to use built-in `reshape` even when `greshape` is installed, for
+      features `greshape` does not support
+- [ ] Keep `reshape`'s dataset characteristics, so that `reshape long`/`reshape
+      wide` with no arguments reverses a `jreshape`
+- [ ] Restore the original sort order (not only the data) after an error
+- [ ] Order the columns of `jreshape wide` output as `reshape wide` does
+- [ ] Help file (`jreshape.sthlp`)
+- [ ] Package files (`stata.toc`, `jtools.pkg`) for `net install` from GitHub
+- [ ] More commands for large datasets
