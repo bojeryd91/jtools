@@ -1,5 +1,26 @@
+*! version 0.1.0  04oct2026  Jesper Böjeryd
+*! Copyright (c) 2026 Jesper Böjeryd. MIT License.
+*! Issues: https://github.com/bojeryd91/stata-jtools/issues
 /*
-	Documentation
+	jreshape: memory-efficient reshape for large datasets (part of stata-jtools)
+
+	Reshapes the data in batches so that the working memory needed by reshape
+	scales with the batch rather than the full dataset. The data are saved to a
+	temporary file; each batch is read back, reshaped and saved, and the
+	reshaped batches are appended at the end. Batches never split an i() group.
+	Uses greshape (gtools) for each batch if installed, otherwise reshape.
+
+	Syntax:
+		jreshape long|wide stubnames, i(varlist) j(varname) [options]
+		jreshape long|wide stubnames, by(varlist) keys(varname) [options]
+
+	Options:
+		nbatches(#)   split the data into about # batches (default 1)
+		batchsize(#)  use batches of about # observations
+		string        j() is a string variable
+
+	On error, the original data are restored, sorted by i().
+	See README.md for details and benchmarks.
 */
 program define jreshape
 	version 17.0
