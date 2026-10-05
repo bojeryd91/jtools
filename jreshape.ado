@@ -49,7 +49,6 @@ program define jreshape
 		exit 198
 	}
 	
-	
 	* Check batch options
 	if `nbatches' != 1 & `batchsize' != 0 {
 		disp as error "You cannot specify both nbatches() and batchsize()"
@@ -74,7 +73,6 @@ program define jreshape
 			local reshape greshape // use gtools version
 		}
 	}
-	
 		
 	* Compute batch sizes and assign observations to batches
 	local orig_N = _N
@@ -110,7 +108,6 @@ program define jreshape
 				use in `ii_first'/`ii_last' using `all_data', clear
 				
 				`reshape' `anything', i(`i') j(`j') `string'
-				
 				
 				tempfile  reshaped`ii'
 				save `reshaped`ii''
