@@ -51,7 +51,7 @@ jreshape wide var, i(id) j(year) batchsize(1000000)
 
 - The output is sorted by `i()` (and `j()` for `long`).
 - If an error occurs, the original data are restored, sorted by `i()`.
-- Requires Stata 17 or later.
+- Requires Stata 17 or later (will probably work with earlier versions, but I only have 17 and later).
 - When `greshape` is installed, `jreshape` uses it for every batch and inherits
   its limitations. In particular, `greshape` does not implement `reshape`'s
   extended syntax (typing `reshape long` or `reshape wide` with no arguments to
@@ -103,3 +103,4 @@ To reproduce: set the path to your Stata executable at the top of
 - [ ] Help file (`jreshape.sthlp`)
 - [ ] Package files (`stata.toc`, `jtools.pkg`) for `net install` from GitHub
 - [ ] More commands for large datasets
+- [ ] Check if scripts work with Stata versions < 17
