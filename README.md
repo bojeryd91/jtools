@@ -1,4 +1,4 @@
-# jtools
+# stata-jtools
 
 Stata tools for manipulating large datasets with limited memory.
 
