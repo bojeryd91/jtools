@@ -74,19 +74,19 @@ is run 11 times; the table reports medians.
 
 - **Data:** 8,534,019 observations, `id` plus 20 numeric variables, reshaped
   `long` (about 170 million output rows).
-- **Machine:** [MacBook model, chip, RAM], Stata/SE 17.
+- **Machine:** [MacBook Pro, M3 Pro, 36GB], Stata/SE 17.
 - **Baseline:** Stata with the test data loaded and no reshape.
 
-| Method                    | Peak memory (GB) | Extra memory (GB) | Extra / baseline | Run time (s) | Time vs. `reshape` |
+| Method                    | Peak memory (GB) | Extra memory (GB) | Extra / baseline | Run time (s) | Run time / `reshape` |
 |---------------------------|-----------------:|------------------:|-----------------:|-------------:|-------------------:|
-| Baseline (load only)      | 0.000            | –                 | –                | 0.00         | –                  |
-| `reshape`                 | 0.000            | 0.000             | 0.00             | 0.00         | –                  |
-| `greshape`                | 0.000            | 0.000             | 0.00             | 0.00         | +0.00              |
-| `jreshape`, 10 batches    | 0.000            | 0.000             | 0.00             | 0.00         | +0.00              |
-| `jreshape`, 100 batches   | 0.000            | 0.000             | 0.00             | 0.00         | +0.00              |
+| Baseline (load only)      | 0.818            | –                 | –                |   0.14       | –                  |
+| `reshape`                 | 3.22             | 2.40              | 2.93             | 127          | –                  |
+| `greshape`                | 6.71             | 5.89              | 7.20             |   6.17       | -0.95              |
+| `jreshape`, 10 batches    | 2.71             | 1.89              | 2.31             |  15.3        | -0.88              |
+| `jreshape`, 100 batches   | 2.62             | 1.80              | 2.20             |  26.8        | -0.79              |
 
 *Extra memory* is the method's peak minus the baseline peak. *Extra / baseline*
-is extra memory as a multiple of the baseline peak. *Time vs. `reshape`* is the
+is extra memory as a multiple of the baseline peak. *Run time / `reshape`* is the
 relative difference in run time (−0.50 = half the time of `reshape`).
 
 To reproduce: set the path to your Stata executable at the top of
