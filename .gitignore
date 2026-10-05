@@ -1,0 +1,5 @@
+mem_*.txt
+ok_*.txt
+bench*.log
+test_data.dta
+mem_results.dta
