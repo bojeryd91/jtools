@@ -3,7 +3,7 @@ local stata   "/Applications/Stata/StataSE.app/Contents/MacOS/stata-se"
 
 *** Generate test data once, in wide format (input for reshape long)
 set seed 20261004
-set obs  8534019
+set obs  853 //4019
 gen long id = _n
 forval k = 1/20 {
 	gen var`k' = `k'*1.1 + rnormal()
@@ -19,19 +19,19 @@ clear all
 tempname results
 postfile `results' str4 direction str20 method method_j iteration byte ok ///
 					double(max_rss peak_footprint real_s user_s sys_s) ///
-												using mem_results, replace
+												using mem_results_jreshape, replace
 
 foreach dir in long wide {
 	disp _n "Reshape `dir'"
 	local j = 1
 	foreach m in baseline reshape greshape jreshape10 jreshape100 {
 		disp "Method: " %23s "`m', iteration:", _cont
-		local tag `dir'_`m'
+		local tag jreshape_`dir'_`m'
 		forval i = 1/11 {
 			disp "`i', ", _cont
 			capture rm ok_`tag'.txt
-			qui shell /usr/bin/time -l "`stata'" -b do bench.do `m' `dir' 2> mem_`tag'.txt
-			capture copy bench.log bench_`tag'.log, replace   // keep each run's log
+			qui shell /usr/bin/time -l "`stata'" -b do bench-jreshape.do `m' `dir' 2> mem_`tag'.txt
+			capture copy bench-jreshape.log bench_`tag'.log, replace   // keep each run's log
 
 			capture confirm file ok_`tag'.txt
 			local ok = (_rc == 0)
@@ -67,7 +67,7 @@ foreach dir in long wide {
 postclose `results'
 
 *** Summarise within each direction, relative to its own baseline
-use mem_results, clear
+use mem_results_jreshape, clear
 
 gcollapse (mean) ok  (p50) max_rss peak_ user_ real_ sys_, by(direction method*)
 sort direction method_j
@@ -79,3 +79,6 @@ by direction: gen extra_s     = (real_s  - real_s[2])/real_s[2] if _n > 2 // row
 drop method_j
 format peak_gb extra_* %6.3g
 list direction method ok peak_gb extra_gb extra_ratio real_s extra_s, noobs sepby(direction)
+
+*** Remove per-run files afterwards (uncomment to use; see cleanup.do)
+do cleanup.do
