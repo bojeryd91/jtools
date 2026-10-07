@@ -1,4 +1,4 @@
-*! version 0.1.0  04oct2026  Jesper Böjeryd
+*! version 0.3.0  05oct2026  Jesper Böjeryd
 *! Copyright (c) 2026 Jesper Böjeryd. MIT License.
 *! Issues: https://github.com/bojeryd91/stata-jtools/issues
 /*
@@ -18,15 +18,18 @@
 		nbatches(#)   split the data into about # batches (default 1)
 		batchsize(#)  use batches of about # observations
 		string        j() is a string variable
+		nogtools      use reshape even if greshape is installed
+		fast          do not keep track of the original row order; on error,
+		              the data are restored sorted by i() instead
 
-	On error, the original data are restored, sorted by i().
+	On error, the original data are restored.
 	See README.md for details and benchmarks.
 */
 program define jreshape
 	version 17.0
 	syntax anything, ///
 		[i(varlist) j(string) by(varlist) KEYs(string) ///
-			NBatches(integer 1) BATCHSize(integer 0) string]
+			NBatches(integer 1) BATCHSize(integer 0) string NOGtools fast]
 	
 	* Check if long or wide
 	gettoken direction : anything
@@ -49,52 +52,24 @@ program define jreshape
 		exit 198
 	}
 	
-	* Check batch options
-	if `nbatches' != 1 & `batchsize' != 0 {
-		disp as error "You cannot specify both nbatches() and batchsize()"
-		exit 198
-	}
-	if `nbatches' < 1 | `batchsize' < 0 {
-		disp as error "nbatches() and batchsize() must be positive"
-		exit 198
-	}
-	if _N == 0 {
-		disp as error "no observations"
-		exit 2000
-	}
-	
-	* Check if greshape is installed
-	qui {
+	* Use greshape if installed, unless nogtools is specified
+	local reshape reshape
+	if "`gtools'`nogtools'" == "" {   // syntax stores nogtools in local gtools
 		capture which greshape
-		if _rc { // If greshape not found
-			local reshape reshape  // fall back to built-in reshape
-		}
-		else { // If greshape is found
-			local reshape greshape // use gtools version
-		}
+		if !_rc local reshape greshape
 	}
-		
-	* Compute batch sizes and assign observations to batches
-	local orig_N = _N
-	if (`batchsize' == 0) local batchsize = ceil(`orig_N'/`nbatches')
-	
-	* Assign data to batches
-	tempvar row batch start
-	sort `i' //, stable
-	qui {
-		gen long `row' = _n
-		by `i': gen long `batch' = ceil(`row'[1]/`batchsize')
-		gen byte `start' = `batch' != `batch'[_n-1]
+
+	* Unless fast, record the original row order, to restore it on error
+	if "`fast'" == "" {
+		tempvar orig_order
+		qui gen long `orig_order' = _n
 	}
-	
-	* First row of each batch, plus a sentinel one past the end
-	mata: st_local("edges", invtokens(strofreal(selectindex( ///
-										st_data(., "`start'"))', "%15.0f")))
-	local edges `edges' `=_N + 1'
-	local nbatches : word count `edges'
-	local --nbatches
-	drop `row' `batch' `start'
-	
+
+	* Sort by i() and assign rows to batches
+	_jbatches `i', nbatches(`nbatches') batchsize(`batchsize')
+	local edges    `r(edges)'
+	local nbatches = r(nbatches)
+
 	*** Save data to read from
 	tempfile  all_data
 	qui save `all_data'
@@ -106,6 +81,7 @@ program define jreshape
 			local --ii_last
 			qui {
 				use in `ii_first'/`ii_last' using `all_data', clear
+				if "`fast'" == "" drop `orig_order'   // not part of the reshape
 				
 				`reshape' `anything', i(`i') j(`j') `string'
 				
@@ -115,15 +91,21 @@ program define jreshape
 		}
 		qui {
 			clear
-			forval ii = 1/`nbatches'{
+			forval ii = 1/`nbatches' {
 				append using `reshaped`ii''
 			}
 		}
 	}
 	local rc = _rc
-	if `rc' { // If internal error occurs, reload original (sorted) data
+	if `rc' { // If internal error occurs, reload the original data
 		qui use `all_data', clear
-		disp as error "jreshape failed; original data restored (but sorted)"
+		if "`fast'" == "" {
+			sort `orig_order'
+			disp as error "jreshape failed; original data restored"
+		}
+		else {
+			disp as error "jreshape failed; original data restored, sorted by i()"
+		}
 		exit `rc'
 	}
 end
