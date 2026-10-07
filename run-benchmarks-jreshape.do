@@ -3,7 +3,7 @@ local stata   "/Applications/Stata/StataSE.app/Contents/MacOS/stata-se"
 
 *** Generate test data once, in wide format (input for reshape long)
 set seed 20261004
-set obs  853 //4019
+set obs  8534019
 gen long id = _n
 forval k = 1/20 {
 	gen var`k' = `k'*1.1 + rnormal()
