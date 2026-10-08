@@ -11,7 +11,7 @@ forval k = 1/20 {
 save test_data_wide, replace
 
 *** Flip to long format once (input for reshape wide)
-greshape long var, i(id) j(new)
+jreshape long var, i(id) j(new) nbatches(10)
 save test_data_long, replace
 clear all
 
@@ -57,8 +57,8 @@ foreach dir in long wide {
 			}
 			file close `fh'
 
-			post `results' ("`dir'") ("`m'") (`j') (`i') (`ok') (`rss') (`peak') ///
-													(`real') (`user') (`sys')
+			post `results' ("`dir'") ("`m'") (`j') (`i') (`ok') (`rss') ///
+										(`peak') (`real') (`user') (`sys')
 		}
 		disp ""
 		local ++j
